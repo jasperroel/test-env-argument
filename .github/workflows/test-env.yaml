@@ -25,7 +25,7 @@ jobs:
         id: get_check_runs
 
       - name: step output to file
-        uses: DamianReeves/write-file-action
+        uses: DamianReeves/write-file-action@v1.0
         with:
           path: check_runs.json
           contents: ${{ steps.get_check_runs.outputs.data }}
