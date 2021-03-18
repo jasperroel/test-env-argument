@@ -16,5 +16,47 @@ jobs:
       - run: getconf ARG_MAX
 
       - run: |
-          export CHECK_RUNS=$(cat check_runs.json)
-          printenv
+          # Simulate the "env"
+          export CHECK_RUNS=$(< check_runs.json)
+          # End Simulate
+
+          # We use printenv and redirection to avoid having to input raw strings into JQ below
+          printenv CHECK_RUNS > check_runs.json
+
+          # Parse all the various forms of the check_runs output
+          FAILED=$(jq --raw-output '[.check_runs[] | select (.conclusion == "failure" and (.name | startswith("Deploy ")) ) | .name |= (sub("Deploy "; "")) | .name] | join(" ")' check_runs.json) || "Failed to parse Failed sites"
+          FAILED_COUNT=$(jq --raw-output '[.check_runs[] | select (.conclusion == "failure" and (.name | startswith("Deploy ")) ) | .name |= (sub("Deploy "; "")) | .name] | length' check_runs.json) || 0
+          SUCCESS=$(jq --raw-output '[.check_runs[] | select (.conclusion == "success" and (.name | startswith("Deploy ")) ) | .name |= (sub("Deploy "; "")) | .name] | join(" ")' check_runs.json) || "Failed to parse Success sites"
+          SUCCESS_COUNT=$(jq --raw-output '[.check_runs[] | select (.conclusion == "success" and (.name | startswith("Deploy ")) ) | .name |= (sub("Deploy "; "")) | .name] | length' check_runs.json) || 0
+          ALL=$(jq --raw-output '[.check_runs[] | select ((.name | startswith("Deploy ")) ) | .name |= (sub("Deploy "; "")) | .name] | join(" ")' check_runs.json) || "Failed to parse check runs JSON file"
+
+          # We need to export these vars to use them in printenv below
+          export FAILED
+          export FAILED_COUNT
+          export SUCCESS
+          export SUCCESS_COUNT
+          export ALL
+
+          # This output is for debugging
+          echo "All Failed jobs:"
+          printenv FAILED
+          echo "All Successful jobs:"
+          printenv SUCCESS
+          echo "All Deploy jobs:"
+          printenv ALL
+          echo "Retry is set to: 1"
+
+          # This output is used for Github Actions steps later on
+          echo "::set-output name=failed-sites::$FAILED"
+          echo "::set-output name=failed-sites-count::$FAILED_COUNT"
+          # This breaks Github... with a 'Error: Argument list too long'
+          #echo "::set-output name=success-sites::$SUCCESS"
+          echo "::set-output name=success-sites-count::$SUCCESS_COUNT"
+
+          if [[ "$FAILED" != "" ]]; then
+            echo "::error ::The following $FAILED_COUNT sites failed: $FAILED"
+            echo "::set-output name=slack-color::danger"
+          else
+            echo "::set-output name=slack-color::good"
+          fi
+
