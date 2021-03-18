@@ -15,13 +15,29 @@ jobs:
 
       - run: getconf ARG_MAX
 
+      - name: Setup Node 14
+        uses: actions/setup-node@v2.1.5
+        with:
+          node-version: 14
+
+      - run: yarn install
+      - run: yarn start
+        id: get_check_runs
+
+      - name: step output to file
+        uses: DamianReeves/write-file-action
+        with:
+          path: check_runs.json
+          contents: ${{ steps.get_check_runs.outputs.data }}
+          write-mode: append
+
       - run: |
           # Simulate the "env"
-          export CHECK_RUNS=$(< check_runs_orig.json)
-          # End Simulate
+          ##export CHECK_RUNS=$(< check_runs_orig.json)
 
           # We use printenv and redirection to avoid having to input raw strings into JQ below
-          python env-to-file.py
+          ##python env-to-file.py
+          # End Simulate
 
           # Parse all the various forms of the check_runs output
           FAILED=$(jq --raw-output '[.check_runs[] | select (.conclusion == "failure" and (.name | startswith("Deploy ")) ) | .name |= (sub("Deploy "; "")) | .name] | join(" ")' check_runs.json) || "Failed to parse Failed sites"
@@ -59,4 +75,6 @@ jobs:
           else
             echo "::set-output name=slack-color::good"
           fi
+        env:
+          CHECK_RUNS: ${{ steps.get_check_runs.outputs.data }}
 
