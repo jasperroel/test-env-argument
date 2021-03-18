@@ -17,11 +17,11 @@ jobs:
 
       - run: |
           # Simulate the "env"
-          export CHECK_RUNS=$(< check_runs.json)
+          export CHECK_RUNS=$(< check_runs_orig.json)
           # End Simulate
 
           # We use printenv and redirection to avoid having to input raw strings into JQ below
-          printenv CHECK_RUNS > check_runs.json
+          python env-to-file.py
 
           # Parse all the various forms of the check_runs output
           FAILED=$(jq --raw-output '[.check_runs[] | select (.conclusion == "failure" and (.name | startswith("Deploy ")) ) | .name |= (sub("Deploy "; "")) | .name] | join(" ")' check_runs.json) || "Failed to parse Failed sites"
