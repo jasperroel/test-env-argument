@@ -5,6 +5,7 @@ on:
 
 jobs:
   print-env:
+    name: Print environment information
     runs-on: [ubuntu-latest]
     steps:
       - run: printenv
