@@ -13,6 +13,10 @@ jobs:
 
       - run: printenv
 
+      - run: printenv | base64
+        env:
+          super-secret: ${{ secrets.TEST_SECRET }}
+
       - run: getconf ARG_MAX
 
       - name: Setup Node 14
