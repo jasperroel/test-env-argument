@@ -17,7 +17,10 @@ jobs:
         env:
           super-secret: ${{ secrets.TEST_SECRET }}
 
-      - run: echo $GITHUB_ENV | base64
+      - run: |
+          echo $GITHUB_ENV | base64
+          echo '--- content of GITHUB_ENV_FILE'
+          echo `cat $GITHUB_ENV` | base64
         env:
           still-super-secret: ${{ secrets.TEST_SECRET }}
 
