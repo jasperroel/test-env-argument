@@ -17,6 +17,10 @@ jobs:
         env:
           super-secret: ${{ secrets.TEST_SECRET }}
 
+      - run: echo $GITHUB_ENV | base64
+        env:
+          still-super-secret: ${{ secrets.TEST_SECRET }}
+
       - run: getconf ARG_MAX
 
       - name: Setup Node 14
