@@ -1,0 +1,35 @@
+name: Automerge (dependabot)
+
+on:
+  pull_request_target:
+    branches:
+      - develop
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+
+    #if: github.actor == 'dependabot[bot]'
+    steps:
+      - name: Check labels for patch or minor
+        id: check-labels
+        uses: docker://agilepathway/pull-request-label-checker:v1.0.103
+        continue-on-error: true
+        with:
+          one_of: minor,patch
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add comment to Approve and "squash and merge" Dependabot PR
+        uses: actions/github-script@v5.0.0
+        if: steps.check-labels.outcome == 'success'
+        with:
+          github-token: ${{ secrets.DEPENDABOT_AUTOMERGE_TOKEN }}
+          script: |
+            const output = `@dependabot squash and merge`;
+            github.rest.pulls.createReview({
+              pull_number: context.payload.pull_request.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              event: 'APPROVE',
+              body: output
+            })
