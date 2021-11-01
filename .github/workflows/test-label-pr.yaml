@@ -5,6 +5,11 @@ on:
     branches:
       - develop
       - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
 
 jobs:
   automerge:
