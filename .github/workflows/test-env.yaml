@@ -24,13 +24,6 @@ jobs:
       - run: yarn start
         id: get_check_runs
 
-      - name: step output to file
-        uses: DamianReeves/write-file-action@v1.0
-        with:
-          path: check_runs.json
-          contents: ${{ steps.get_check_runs.outputs.data }}
-          write-mode: append
-
       - run: |
           # Simulate the "env"
           ##export CHECK_RUNS=$(< check_runs_orig.json)
